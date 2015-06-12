@@ -3,7 +3,7 @@
 ;
 ; Created 06/10/2015 by Lauren Vargo (lvargo@lanl.gov, lvargo@unm.edu)
 ;
-; Plots absolute velocity (u^2 + v^2) at the top level 
+; Plots: 
 ; Creates vertical and horizontal cross-sections at specified lat and lon 
 ; 
 ; CISM 2.0 (CESM1 4 beta04)
@@ -11,11 +11,11 @@
 
 ;----------- read in netCDF file
 
-  diri  = "./"
-  fil  = "IG_CISM2_default.cism.h.0067-01-01-00000.nc"                      ; command line
-  f     = addfile(diri+fil,"r")
+  f  = addfile(fili,"r")
+  x1 = f->x1
+  y1 = f->y1
 
-  g   = addfile("lat_lon.nc","r")                                           ; command line  
+  g     = addfile(lat_lon,"r")                                           
   nt    = 0
   lat2d = g->lat(nt,:,:)   
   lon2d = g->lon(nt,:,:)
@@ -26,9 +26,8 @@
 
 
 ;----------- contour map modifications
-
-  title = "Plots_CISM2"                                                     ; command line
-  wks = gsn_open_wks("pdf",title)   
+                                              
+  wks = gsn_open_wks("pdf",file_name)   
 
   res                      = True               ; plot mods desired
   res@gsnDraw              = False
@@ -63,39 +62,48 @@
 
 ;----------- Contour Map 
 
-  var  = "acab"                                                      ; command line
   plots = new(1,graphic)   ; new plots, with one plot per page   
-
-  x  = f->$var$(nt,:,:)
-  x@lat2d = lat2d
-  x@lon2d = lon2d
+  
+  var  := f->$var$
+  
+  ;-- if statment to determine whether variable is 3d or 4d 
+  if ( (dimsizes(dimsizes(var))) .eq. 3 ) then
+  	var := var(nt,:,:)
+  else if ( (dimsizes(dimsizes(var))) .eq. 4 ) then
+  	var := var(nt,lev,:,:)
+  else
+  	print("Error with indexing")
+  end if
+  end if 
+     
+  var@lat2d = lat2d
+  var@lon2d = lon2d
 
   res@cnFillPalette = "WhiteBlueGreenYellowRed"
   res@tfDoNDCOverlay = False 
      
-  plots(0) = gsn_csm_contour_map(wks,x,res)
+  plots(0) = gsn_csm_contour_map(wks,var,res)
 
-  resP@txString      = x@long_name+" ("+x@units+")" 
+  resP@txString      = var@long_name+" ("+var@units+")" 
   gsn_panel(wks,plots,(/1,2/),resP)
   
   
 ;---------------------- Cross sections
   
-  cross_sec = lon2d(7,36)
-  print(cross_sec)
+ ; mat = new((/nlat,mlon/),double)
   
-  mat = new((/nlat,mlon/),double)
-  
-  do r = nt, nlat-1
-  	do c = nt, mlon-1
-		if (lon2d(r,c).eq. cross_sec) then 
-			mat(r,c) = x(r,c)
-		else
-			mat(r,c) = 0
-		end if
-	end do 
-  end do 	
-  
-  
-  maxa = max(mat)
-  print(maxa) 
+ ; do r = nt, nlat-1
+ ; 	do c = nt, mlon-1 
+;		if ( lon2d(r,c) .eq. (lon2d(7,36)) ) then 
+;			mat(r,c) = x(r,c)
+;		else
+;			mat(r,c) = 0
+;		end if
+;	end do 
+;  end do 	
+;  
+;  print(lon2d(7,36))
+;  maxa = max(mat)
+;  mina = min(mat)
+;  print(mina)
+;  print(maxa) 
