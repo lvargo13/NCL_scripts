@@ -4,14 +4,11 @@
 
  
  
- fili = "IG_CISM2_default.cism.h.0067-01-01-00000.nc"    ; netCDF file being analyzed
+ fili = "BG_CISM1_parallel_updating.cism.h.0093-01-01-00000.nc"    ; model run
  
- lat_lon = "lat_lon.nc"        ; lat lon data file 
+ GLdat = "Greenland_5km_v1.1_SacksRev_c110629.nc"    ; Greenland data
  
- file_name = "Plots_CISM2"     ; name of output pdf file 
- 
- ; eventually add cross section locations 
- 
+ file_name = "Plots_CISM1"     ; name of output pdf file  
  
  
  loadscript("All_CISM2_plots.ncl")  ; calls CISM2_plots.ncl
