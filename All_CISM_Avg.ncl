@@ -13,20 +13,39 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 
 ;----------- read in netCDF file
-
-  f  = addfile(fili,"r")
+  
+ smb = smbacc / (fileend - filestart +1)
+ temp = tempacc / (fileend - filestart +1)
+ thk = thkacc / (fileend - filestart +1)
+ topg = topgacc / (fileend - filestart +1)
+ usurf = usurfacc / (fileend - filestart +1)
+ uvel = uvelacc / (fileend - filestart +1)
+ vvel = vvelacc / (fileend - filestart +1)
+ Vel = ((uvel^2) + (vvel^2))^0.5
+ 
+ if(isatt(sfacab,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
+     	smb := smb * sfacab@scale_factor
+ end if 
+ if(isatt(sftemp,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
+     	temp := temp * sftemp@scale_factor
+ end if 
+ if(isatt(sfthk,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
+     	thk := thk * sfthk@scale_factor
+ end if 
+ if(isatt(sftopg,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
+     	topg := topg * sftopg@scale_factor
+ end if 
+ if(isatt(sfusurf,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
+     	usurf := usurf * sfusurf@scale_factor
+ end if 
+ if(isatt(sfvvel,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
+     	Vel := Vel * sfuvel@scale_factor
+ end if 
+  
+ 
   
   x1 = f->x1
-  y1 = f->y1
-  
-  d  = addfile(GLdat,"r")                                       
-  nt    = 0
-  lat2d = d->lat(nt,:,:)   
-  lon2d = d->lon(nt,:,:)
-
-  dimgrd= dimsizes(lat2d)
-  nlat  = dimgrd(0)        
-  mlon  = dimgrd(1)        
+  y1 = f->y1      
 
   wks = gsn_open_wks("pdf",file_name)
 
@@ -95,14 +114,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
   ;---- SBM    
      plot1 = new(3,graphic)            ; create the graphic for the first plot with 3 panels
      
-     x  := f->acab(nt,:,:)             ; read in the modeled data 
      xGL := d->smb(nt,:,:)             ; read in actual data
-     
-     if(isatt(x,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
-     	xn := x * x@scale_factor
-     else
-        xn := x
-     end if 
+     xn := smb
      
      maxmod = ceil(max(xn))
      maxmeas = ceil(max(xGL))
@@ -118,21 +131,17 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      else
      	minrange  = minmeas
      end if
+     totalrange = (maxrange - minrange)*2
      res1@cnLevelSelectionMode = "ManualLevels"
      res1@cnMinLevelValF  = minrange			; set the minimum contour level
      res1@cnMaxLevelValF  = maxrange			; set the maximum contour level
-     rng = (maxrange - minrange)/21
+     rng = (maxrange - minrange)/totalrange
      res1@cnLevelSpacingF = rng			; set the interval between contours 
-     
-     ;getvalues plot1@contour
-     ;  "cnLevels" : levels
-     ;end getvalues
-     ;res1@lbLabelStrings := sprintf("%3.1f",levels)   ; Format the labels
 	 
      xn@lat2d = lat2d 
      xn@lon2d = lon2d
-     res1@tiMainString   = "CISM"         ; title of first panel 
-     res1@lbTitleString  = " ("+x@units+")"     ; label bar laber for first panel
+     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@lbTitleString  = " ("+sfacab@units+")"     ; label bar laber for first panel
      plot1(0) = gsn_csm_contour_map(wks,xn,res1)     ; create the first panel plot
           
      xGL@lat2d = lat2d
@@ -154,15 +163,9 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
  
   ;---- Temp
      plot2 = new(3,graphic)
-     
-     x  := f->temp(nt,nt,:,:)
+
      xGL  := d->surftemp(nt,:,:)
-     
-     if(isatt(x,"scale_factor")) then
-     	xn := x * x@scale_factor
-     else
-        xn := x
-     end if 
+     xn := temp
      
      maxmod := ceil(max(xn))
      maxmeas := ceil(max(xGL))
@@ -178,29 +181,30 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      else
      	minrange  := minmeas
      end if
+     totalrange = (maxrange - minrange)/2
      res1@cnLevelSelectionMode := "ManualLevels"
      res1@cnMinLevelValF  := minrange			; set the minimum contour level
      res1@cnMaxLevelValF  := maxrange			; set the maximum contour level
-     rng := (maxrange - minrange)/21
+     rng := (maxrange - minrange)/totalrange
      res1@cnLevelSpacingF := rng			; set the interval between contours
   
      xn@lat2d = lat2d
      xn@lon2d = lon2d
-     res1@tiMainString   = "CISM"
-     res1@lbTitleString  = " ("+xn@units+")" 
+     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@lbTitleString  = " ("+sftemp@units+")" 
      plot2(0) = gsn_csm_contour_map(wks,xn,res1)
      
      xGL@lat2d = lat2d
      xGL@lon2d = lon2d
      res1@tiMainString   = "1958-2007 Climatology"
-     res1@lbTitleString  = " ("+x@units+")" 
+     res1@lbTitleString  = " ("+sftemp@units+")" 
      plot2(1) = gsn_csm_contour_map(wks,xGL,res1)
      
      xdif := xn - xGL 
      xdif@lat2d = lat2d
      xdif@lon2d = lon2d
      resD@tiMainString   = "Difference (CISM - Data)"
-     resD@lbTitleString  = " ("+x@units+")"
+     resD@lbTitleString  = " ("+sftemp@units+")"
      symMinMaxPlt (xdif,21,False,resD)
      plot2(2) = gsn_csm_contour_map(wks,xdif,resD)
   
@@ -209,15 +213,9 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
   ;---- Thickness 
      plot3 = new(3,graphic)
-     
-     x  := f->thk(nt,:,:)
-     xGL  := d->thk(nt,:,:)
 
-     if(isatt(x,"scale_factor")) then
-     	xn := x * x@scale_factor
-     else
-        xn := x
-     end if 
+     xGL  := d->thk(nt,:,:)
+     xn:= thk
      
      maxmod := ceil(max(xn))
      maxmeas := ceil(max(xGL))
@@ -233,16 +231,17 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      else
      	minrange  := minmeas
      end if
+     totalrange = (maxrange - minrange)/100
      res1@cnLevelSelectionMode := "ManualLevels"
      res1@cnMinLevelValF  := minrange			; set the minimum contour level
      res1@cnMaxLevelValF  := maxrange			; set the maximum contour level
-     rng := (maxrange - minrange)/21
+     rng := (maxrange - minrange)/totalrange
      res1@cnLevelSpacingF := rng			; set the interval between contours
-     
+          
      xn@lat2d = lat2d
      xn@lon2d = lon2d
-     res1@tiMainString   = "CISM"
-     res1@lbTitleString  = " ("+x@units+")" 
+     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@lbTitleString  = " ("+sfthk@units+")" 
      plot3(0) = gsn_csm_contour_map(wks,xn,res1)
      
      xGL@lat2d = lat2d
@@ -263,16 +262,10 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      gsn_panel(wks,plot3,(/1,3/),resP)
 
   ;---- Topography
-      plot4 = new(3,graphic)
-     
-     x  := f->topg(nt,:,:)
+     plot4 = new(3,graphic)
+
      xGL  := d->topg(nt,:,:)
-     
-     if(isatt(x,"scale_factor")) then
-     	xn := x * x@scale_factor
-     else
-        xn := x
-     end if
+     xn := topg
      
      maxmod := ceil(max(xn))
      maxmeas := ceil(max(xGL))
@@ -288,16 +281,17 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      else
      	minrange  := minmeas
      end if
+     totalrange = (maxrange - minrange)/200
      res1@cnLevelSelectionMode := "ManualLevels"
      res1@cnMinLevelValF  := minrange			; set the minimum contour level
      res1@cnMaxLevelValF  := maxrange			; set the maximum contour level
-     rng := (maxrange - minrange)/21
+     rng := (maxrange - minrange)/totalrange
      res1@cnLevelSpacingF := rng			; set the interval between contours
 
      xn@lat2d = lat2d
      xn@lon2d = lon2d
-     res1@tiMainString   = "CISM"
-     res1@lbTitleString  = " ("+x@units+")" 
+     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@lbTitleString  = " ("+sftopg@units+")" 
      plot4(0) = gsn_csm_contour_map(wks,xn,res1)
      
      xGL@lat2d = lat2d
@@ -319,15 +313,9 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
   ;---- Surface Elevation 
      plot5 = new(3,graphic)
-     
-     x  := f->usurf(nt,:,:)
+
      xGL  := d->usrf(nt,:,:)
-     
-     if(isatt(x,"scale_factor")) then
-     	xn := x * x@scale_factor
-     else
-        xn := x
-     end if 
+     xn := usurf
      
      maxmod := ceil(max(xn))
      maxmeas := ceil(max(xGL))
@@ -343,16 +331,17 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      else
      	minrange  := minmeas
      end if
+     totalrange = (maxrange - minrange)/100
      res1@cnLevelSelectionMode := "ManualLevels"
      res1@cnMinLevelValF  := minrange			; set the minimum contour level
      res1@cnMaxLevelValF  := maxrange			; set the maximum contour level
-     rng := (maxrange - minrange)/21
+     rng := (maxrange - minrange)/totalrange
      res1@cnLevelSpacingF := rng			; set the interval between contours
 
      xn@lat2d = lat2d
      xn@lon2d = lon2d
-     res1@tiMainString   = "CISM"
-     res1@lbTitleString  = " ("+x@units+")" 
+     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@lbTitleString  = " ("+sfusurf@units+")" 
      plot5(0) = gsn_csm_contour_map(wks,xn,res1)
           
      xGL@lat2d = lat2d
@@ -374,17 +363,9 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      
   ;---- Absolute Velocity (Top Layer)   
      plot6 = new(3,graphic)
-     
-     xvel  := f->uvel(nt,nt,:,:)
-     yvel  := f->vvel(nt,nt,:,:)
-     x :=  ((xvel^2) + (yvel^2))^0.5 
+ 
      xGL  := d->surfvelmag(nt,0:nlat-2,0:mlon-2)
-     
-     if(isatt(xvel,"scale_factor")) then
-     	xn := x * xvel@scale_factor
-     else
-        xn := x
-     end if 
+     xn := Vel
      
      maxmod := ceil(max(xn))
      maxmeas := ceil(max(xGL))
@@ -400,8 +381,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
      xn@lat2d = lat2d
      xn@lon2d = lon2d
-     res1@tiMainString   = "CISM"
-     res1@lbTitleString  = " ("+xvel@units+")" 
+     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@lbTitleString  = " ("+sfvvel@units+")" 
      plot6(0) = gsn_csm_contour_map(wks,xn,res1)
           
      xGL@lat2d = lat2d
