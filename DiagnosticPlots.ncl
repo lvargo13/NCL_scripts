@@ -2,9 +2,9 @@
 
  filestart = toint(getenv("filestart"))
  fileend = toint(getenv("fileend"))
- dataF = getenv(dataFile)
- modelPreName = getenv(modelPreName)
- modelPostName = getenv(modelPostName)
+ dataF = getenv("dataF")
+ modelPreName = getenv("modelPreName")
+ modelPostName = getenv("modelPostName")
  
  file_name="CISM1_DiagnosticPlots" 
  d = addfile(dataF,"r")
@@ -200,6 +200,14 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
      xGL  := d->surftemp(nt,:,:)
      xn := temp
+       
+	do r = 0,nlat-1
+     		do c = 0,mlon-1
+			if ( thk(r,c) .eq. 0 )
+				xGL(r,c) = 0
+			end if
+		end do 
+	end do 	
      
      maxmod := ceil(max(xn))
      maxmeas := ceil(max(xGL))
@@ -410,9 +418,10 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      end if
      lnmax = log10(max(maxrange))
      res1@cnLevelSelectionMode = "ExplicitLevels"                        ; set explicit contour levels 
-     logspace = (10)^(fspan(0,lnmax,21))       ; logrithmically spaced contours
+     ;logspace = (10)^(fspan(0,lnmax,21))       ; logrithmically spaced contours
+     logspace = ((/1,10,100,1000,10000/))
      res1@cnLevels = (logspace)                             ; set levels 
-
+     
      xn@lat2d = lat2d
      xn@lon2d = lon2d
      res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
@@ -425,17 +434,15 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      res1@lbTitleString  = " ("+xGL@units+")" 
      plot6(1) = gsn_csm_contour_map(wks,xGL,res1)
           
-     xdif := xn - xGL 
+     xdif := xn - xGL
+     resD@cnLevelSelectionMode = "ExplicitLevels"                        ; set explicit contour levels 
+     logspace := ((/-10000,-1000,-100,-10,-1,0,1,10,100,1000,10000/))
+     resD@cnLevels = (logspace) 
      xdif@lat2d = lat2d
      xdif@lon2d = lon2d
      resD@tiMainString   = "Difference (CISM - Data)"
      resD@lbTitleString  = " ("+xGL@units+")"
-     ;maxdif = log10(max(xdif))
-     ;mindif = log10(min(xdif))
-     ;resD@cnLevelSelectionMode = "ExplicitLevels"                        ; set explicit contour levels 
-     ;logspace := (10)^(fspan(mindif,maxdif,21))       ; logrithmically spaced contours
-     ;resD@cnLevels := (logspace)
-     symMinMaxPlt (xdif,21,False,resD)
+     ; symMinMaxPlt (xdif,21,False,resD)
      plot6(2) = gsn_csm_contour_map(wks,xdif,resD)
   
      resP@txString   := xGL@long_name
