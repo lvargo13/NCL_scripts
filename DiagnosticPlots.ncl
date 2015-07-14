@@ -112,6 +112,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
   res1@mpRightCornerLonF     = lon2d(nlat-1,mlon-1)
   res1@mpCenterLonF          = f->mapping@straight_vertical_longitude_from_pole
   res1@mpCenterLatF          = f->mapping@standard_parallel
+  res1@tiMainFontHeightF     = 0.012
 
   resD = True
   resD@gsnDraw               = False
@@ -139,6 +140,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
   resD@mpRightCornerLonF     = lon2d(nlat-1,mlon-1)
   resD@mpCenterLonF          = f->mapping@straight_vertical_longitude_from_pole
   resD@mpCenterLatF          = f->mapping@standard_parallel
+  resD@tiMainFontHeightF     = 0.012
 
   resP                      = True                ; panel resoources
   resP@gsnMaximize          = True
@@ -238,7 +240,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      
      xGL@lat2d = lat2d
      xGL@lon2d = lon2d
-     res1@tiMainString   = "1958-2007 Climatology"
+     res1@tiMainString   = "Present day " + xGL@long_name
      res1@lbTitleString  = " ("+sftemp@units+")" 
      plot2(1) = gsn_csm_contour_map(wks,xGL,res1)
      
@@ -288,7 +290,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      
      xGL@lat2d = lat2d
      xGL@lon2d = lon2d
-     res1@tiMainString   = "1970s & 1993-1999 Climatology"
+     res1@tiMainString   = "Present day " + xGL@long_name
      res1@lbTitleString  = " ("+xGL@units+")" 
      plot3(1) = gsn_csm_contour_map(wks,xGL,res1)
      
@@ -338,7 +340,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      
      xGL@lat2d = lat2d
      xGL@lon2d = lon2d
-     res1@tiMainString   = "1970s & 1993-1999 Climatology"
+     res1@tiMainString   = "Present day " + xGL@long_name
      res1@lbTitleString  = " ("+xGL@units+")" 
      plot4(1) = gsn_csm_contour_map(wks,xGL,res1)
      
@@ -388,7 +390,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
           
      xGL@lat2d = lat2d
      xGL@lon2d = lon2d
-     res1@tiMainString   = "1970s & 1993-1999 Climatology"
+     res1@tiMainString   = "Present day " + xGL@long_name
      res1@lbTitleString  = " ("+xGL@units+")" 
      plot5(1) = gsn_csm_contour_map(wks,xGL,res1)
           
@@ -430,7 +432,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
           
      xGL@lat2d = lat2d
      xGL@lon2d = lon2d
-     res1@tiMainString   = "2000/01 and 2005/06 Climatology"
+     res1@tiMainString   = "Present day " + xGL@long_name
      res1@lbTitleString  = " ("+xGL@units+")" 
      plot6(1) = gsn_csm_contour_map(wks,xGL,res1)
           
@@ -442,7 +444,6 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      xdif@lon2d = lon2d
      resD@tiMainString   = "Difference (CISM - Data)"
      resD@lbTitleString  = " ("+xGL@units+")"
-     ; symMinMaxPlt (xdif,21,False,resD)
      plot6(2) = gsn_csm_contour_map(wks,xdif,resD)
   
      resP@txString   := xGL@long_name
