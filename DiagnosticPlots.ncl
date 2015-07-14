@@ -2,10 +2,12 @@
 
  filestart = toint(getenv("filestart"))
  fileend = toint(getenv("fileend"))
-
+ dataF = getenv(dataFile)
+ modelPreName = getenv(modelPreName)
+ modelPostName = getenv(modelPostName)
+ 
  file_name="CISM1_DiagnosticPlots" 
- GLdat = "Greenland_5km_v1.1_SacksRev_c110629.nc" 
- d = addfile(GLdat,"r")
+ d = addfile(dataF,"r")
  nt = 0
  lat2d = d->lat(nt,:,:)   
  lon2d = d->lon(nt,:,:)
@@ -22,7 +24,7 @@
  vvelacc = new((/nlat-1,mlon-1/),double,"No_FillValue")
  
  do k = filestart,fileend
- 	myfilename = "BG_CISM1_parallel_updating.cism.h."+sprinti("%0.4i",k)+"-01-01-00000.nc"
+ 	myfilename = modelPreName+sprinti("%0.4i",k)+modelPostName
  	f = addfile(myfilename,"r")
 	smbacc(:,:) = smbacc(:,:) + f->acab(0,:,:)
 	sfacab = f->acab
