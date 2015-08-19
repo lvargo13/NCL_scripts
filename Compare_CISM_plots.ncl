@@ -9,7 +9,9 @@
  modelBPreName = getenv("modelBPreName")
  modelBPostName = getenv("modelBPostName")
  latlon = getenv("latlon")
- 
+ FileAname = getenv("FileAname")
+ FileBname = getenv("FileBname")
+
  file_name="CISM_Comparison_plots" 
  
 ; Lat lon data 
@@ -223,17 +225,17 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 	 
      xA@lat2d = lat2d 
      xA@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileAname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfacabA@units+")"     ; label bar laber for first panel
      plot1(0) = gsn_csm_contour_map(wks,xA,res1)     ; create the first panel plot
           
      xB@lat2d = lat2d
      xB@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileBname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfacabB@units+")" 
      plot1(1) = gsn_csm_contour_map(wks,xB,res1)
      
-     xdif := xA - xB       ; subtract model from data
+     xdif := xA - xB           		
      xdif@lat2d = lat2d
      xdif@lon2d = lon2d
      resD@tiMainString   = "Difference (File A - File B)"
@@ -288,13 +290,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
   
      xA@lat2d = lat2d
      xA@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileAname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sftempA@units+")" 
      plot2(0) = gsn_csm_contour_map(wks,xA,res1)
      
      xB@lat2d = lat2d
      xB@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileBname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sftempB@units+")" 
      plot2(1) = gsn_csm_contour_map(wks,xB,res1)
      
@@ -306,7 +308,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      symMinMaxPlt (xdif,21,False,resD)
      plot2(2) = gsn_csm_contour_map(wks,xdif,resD)
   
-     resP@txString   := sftempB@long_name
+     resP@txString   := "Ice Surface Temperature"
      gsn_panel(wks,plot2,(/1,3/),resP)
 
   ;---- Thickness 
@@ -338,13 +340,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
           
      xA@lat2d = lat2d
      xA@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileAname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfthkA@units+")" 
      plot3(0) = gsn_csm_contour_map(wks,xA,res1)
      
      xB@lat2d = lat2d
      xB@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileBname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfthkB@units+")" 
      plot3(1) = gsn_csm_contour_map(wks,xB,res1)
      
@@ -365,6 +367,21 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      xA := topgA
      xB := topgB
      
+     do r = 0,nlat-1
+     		do c = 0,mlon-1
+			if ( topgA(r,c) .gt. 10000 )
+				xA(r,c) = 0
+			end if
+		end do 
+	end do 	
+     	do r = 0,nlat-1
+     		do c = 0,mlon-1
+			if ( topgB(r,c) .gt. 10000 )
+				xB(r,c) = 0
+			end if
+		end do 
+	end do 
+	
      maxmod := ceil(max(xA))
      maxmeas := ceil(max(xB))
      minmod := floor(min(xA))
@@ -388,13 +405,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
      xA@lat2d = lat2d
      xA@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileAname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sftopgA@units+")" 
      plot4(0) = gsn_csm_contour_map(wks,xA,res1)
      
      xB@lat2d = lat2d
      xB@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileBname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sftopgB@units+")" 
      plot4(1) = gsn_csm_contour_map(wks,xB,res1)
      
@@ -415,6 +432,21 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      xA := usurfA
      xB := usurfB
      
+     do r = 0,nlat-1
+     		do c = 0,mlon-1
+			if ( usurfA(r,c) .gt. 10000 )
+				xA(r,c) = 0
+			end if
+		end do 
+	end do 	
+     	do r = 0,nlat-1
+     		do c = 0,mlon-1
+			if ( usurfB(r,c) .gt. 10000 )
+				xB(r,c) = 0
+			end if
+		end do 
+	end do 
+	
      maxmod := ceil(max(xA))
      maxmeas := ceil(max(xB))
      minmod := floor(min(xA))
@@ -438,13 +470,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
      xA@lat2d = lat2d
      xA@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileAname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfusurfA@units+")" 
      plot5(0) = gsn_csm_contour_map(wks,xA,res1)
           
      xB@lat2d = lat2d
      xB@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileBname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfusurfB@units+")" 
      plot5(1) = gsn_csm_contour_map(wks,xB,res1)
           
@@ -480,13 +512,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      
      xA@lat2d = lat2d
      xA@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileAname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfvvelA@units+")" 
      plot6(0) = gsn_csm_contour_map(wks,xA,res1)
           
      xB@lat2d = lat2d
      xB@lon2d = lon2d
-     res1@tiMainString   = "CISM mean: Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend)
+     res1@tiMainString   = (FileBname + " Year"+ sprintf("%3.0f",filestart) + " -" + sprintf("%3.0f",fileend) + " mean")
      res1@lbTitleString  = " ("+sfvvelB@units+")" 
      plot6(1) = gsn_csm_contour_map(wks,xB,res1)
           
@@ -500,5 +532,5 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      resD@lbTitleString  = " ("+sfvvelB@units+")"
      plot6(2) = gsn_csm_contour_map(wks,xdif,resD)
   
-     resP@txString   := sfvvelB@long_name
+     resP@txString   := "Ice Velocity"
      gsn_panel(wks,plot6,(/1,3/),resP)

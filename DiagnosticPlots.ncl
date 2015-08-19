@@ -74,12 +74,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
  end if 
  if(isatt(sfvvel,"scale_factor")) then    ; if statement to apply the scale factor, if applicable
      	Vel := Vel * sfuvel@scale_factor
- end if 
-  
- 
-  
-  x1 = f->x1
-  y1 = f->y1      
+ end if       
 
   wks = gsn_open_wks("pdf",file_name)
 
@@ -408,11 +403,30 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
   ;---- Absolute Velocity (Top Layer)   
      plot6 = new(3,graphic)
  
+     g = addfile("Joughin-GIS-InSAR-Vels-2015-1km.nc","r")
+     vx = g->vx(nt,:,:)   
+     vy = g->vy(nt,:,:)
+     Velm := ((vx^2) + (vy^2))^0.5
+     xi = ispan(1,1501,1)
+     yi = ispan(1,2801,1)
+     klon = ispan(1,300,1)
+     klat = ispan(1,560,1)
+     Velmeas = linint2 (xi,yi,Velm,False,klon,klat,0)
+     
+     	do r = 0,559
+     		do c = 0,299
+			if ( Velmeas(r,c) .gt. 20000 )
+				Velmeas(r,c) = 20000
+			end if
+		end do 
+	end do 	
+     
      xGL  := d->surfvelmag(nt,0:nlat-2,0:mlon-2)
+     xGLfine := Velmeas
      xn := Vel
      
      maxmod := ceil(max(xn))
-     maxmeas := ceil(max(xGL))
+     maxmeas := ceil(max(xGLfine))
      if maxmod .ge. maxmeas
      	maxrange  := maxmod
      else
@@ -430,13 +444,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      res1@lbTitleString  = " ("+sfvvel@units+")" 
      plot6(0) = gsn_csm_contour_map(wks,xn,res1)
           
-     xGL@lat2d = lat2d
-     xGL@lon2d = lon2d
+     xGLfine@lat2d = lat2d
+     xGLfine@lon2d = lon2d
      res1@tiMainString   = "Present day " + xGL@long_name
      res1@lbTitleString  = " ("+xGL@units+")" 
-     plot6(1) = gsn_csm_contour_map(wks,xGL,res1)
+     plot6(1) = gsn_csm_contour_map(wks,xGLfine,res1)
           
-     xdif := xn - xGL
+     xdif := xn - xGLfine
      resD@cnLevelSelectionMode = "ExplicitLevels"                        ; set explicit contour levels 
      logspace := ((/-10000,-1000,-100,-10,-1,0,1,10,100,1000,10000/))
      resD@cnLevels = (logspace) 
