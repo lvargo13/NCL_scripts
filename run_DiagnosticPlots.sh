@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# File to run the diagnostic plot package (DiagnosticPlots.ncl)
 export filestart=170 
 export fileend=200
 export dataF="Greenland_5km_v1.1_SacksRev_c110629.nc" 
