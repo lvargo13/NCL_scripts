@@ -1,5 +1,6 @@
  ; Created by Lauren Vargo 07/29/2015
  ; Compare two CISM output netCDF files
+ ; Run by 'run_Compare_CISM_plots.sh'
 
 ; Read files from bash script
  filestart = toint(getenv("filestart"))
