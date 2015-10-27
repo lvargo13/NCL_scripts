@@ -11,6 +11,8 @@
  nt = 0
  lat2d = d->lat(nt,:,:)   
  lon2d = d->lon(nt,:,:)
+ printVarSummary(lat2d)
+ printVarSummary(lon2d)
  dimgrd= dimsizes(lat2d)
  nlat  = dimgrd(0)        
  mlon  = dimgrd(1)  
@@ -402,27 +404,31 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      
   ;---- Absolute Velocity (Top Layer)   
      plot6 = new(3,graphic)
- 
+     
+     xGLname  := d->surfvelmag(nt,:,:)
+     
      g = addfile("Joughin-GIS-InSAR-Vels-2015-1km.nc","r")
      vx = g->vx(nt,:,:)   
      vy = g->vy(nt,:,:)
      Velm := ((vx^2) + (vy^2))^0.5
-     xi = ispan(1,1501,1)
-     yi = ispan(1,2801,1)
-     klon = ispan(1,300,1)
-     klat = ispan(1,560,1)
-     Velmeas = linint2 (xi,yi,Velm,False,klon,klat,0)
      
-     	do r = 0,559
-     		do c = 0,299
-			if ( Velmeas(r,c) .gt. 20000 )
-				Velmeas(r,c) = 20000
+        do r = 0,2800
+     		do c = 0,1500
+			if ( Velm(r,c) .gt. 20000 )
+				Velm(r,c) = 20000
 			end if
 		end do 
 	end do 	
      
-     xGL  := d->surfvelmag(nt,0:nlat-2,0:mlon-2)
-     xGLfine := Velmeas
+     xi = ispan(1,1501,1)
+     yi = ispan(1,2801,1)
+     ; klon = ispan(1,300,1)
+     ; klat = ispan(1,560,1)
+     xo = ispan(1,max(xi),5)
+     yo = ispan(1,max(yi),5)  
+     Velmeas = linint2 (xi,yi,Velm,False,xo,yo,0)
+     
+     xGLfine := Velmeas(0:559,0:299)
      xn := Vel
      
      maxmod := ceil(max(xn))
@@ -446,10 +452,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
           
      xGLfine@lat2d = lat2d
      xGLfine@lon2d = lon2d
-     res1@tiMainString   = "Present day " + xGL@long_name
-     res1@lbTitleString  = " ("+xGL@units+")" 
+     res1@tiMainString   = "Present day " + xGLname@long_name
+     res1@lbTitleString  = " ("+xGLname@units+")" 
      plot6(1) = gsn_csm_contour_map(wks,xGLfine,res1)
           
+     printVarSummary(xn)	  
+     printVarSummary(xGLfine)	  
+	  
      xdif := xn - xGLfine
      resD@cnLevelSelectionMode = "ExplicitLevels"                        ; set explicit contour levels 
      logspace := ((/-10000,-1000,-100,-10,-1,0,1,10,100,1000,10000/))
@@ -457,8 +466,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
      xdif@lat2d = lat2d
      xdif@lon2d = lon2d
      resD@tiMainString   = "Difference (CISM - Data)"
-     resD@lbTitleString  = " ("+xGL@units+")"
+     resD@lbTitleString  = " ("+xGLname@units+")"
      plot6(2) = gsn_csm_contour_map(wks,xdif,resD)
   
-     resP@txString   := xGL@long_name
+     resP@txString   := xGLname@long_name
      gsn_panel(wks,plot6,(/1,3/),resP)
