@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# bash script to run Compare_CISM_plots.ncl
+# diagnostic plots compare CISM with CISM
+
 export filestart=35 
 export fileend=65
 export FileAname="gradient=0"
