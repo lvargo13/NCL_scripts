@@ -1,3 +1,6 @@
+; plots time series of ice volume and ice area
+; called by plot_TimeSeries.sh 
+
 Vol = asciiread("Vol_TS_data.sh",-1,"float")
 Area = asciiread("Area_TS_data.sh",-1,"float")
 
